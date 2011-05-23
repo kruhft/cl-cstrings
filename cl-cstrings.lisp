@@ -41,10 +41,9 @@
   (declare (ignore subchar))
   (let* ((sb-size (if arg arg 16))
 	 (sb (make-array sb-size
-			:element-type 'standard-char
+			:element-type 'extended-char
 			:adjustable t
-			:fill-pointer 0))
-	(chars nil))
+			:fill-pointer 0)))
     (catch 'end-of-string
       (do ((c (read-char stream) (read-char stream)))
 	  (nil) ; loop until return
@@ -105,28 +104,24 @@
 			     (handler-case (parse-integer str :radix radix)
 			       (parse-error ()
 				 (error (format nil "#\"-reader: no digit characters after escape sequence for base ~A" radix)))))))
-		  (setq c2 (case c2 ; convert escaped char or escape sequence
-			     (#\a #\Bel)
-			     (#\b #\Backspace)
-			     (#\f #\Page)
-			     (#\n #\Newline)
-			     (#\r #\Return)
-			     (#\t #\Tab)
-			     (#\v #\Vt)
-			     (#\B (code-char (read-upto-n-char-radix-stream stream 2)))
-			     (#\o (code-char (read-upto-n-char-radix-stream stream 8)))
-			     (#\d (code-char (read-upto-n-char-radix-stream stream 10)))
-			     (#\x (code-char (read-upto-n-char-radix-stream stream 16)))
-			     ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7) ; octal
-			      (unread-char c2)
-			      (code-char (read-upto-n-char-radix-stream stream 8 3)))
-			     (otherwise c2)))
-		  (push c2 chars) ; save char
-		  (vector-push-extend #\~ sb sb-size) ; add ~C to format specifier string
-		  (vector-push-extend #\C sb sb-size))))
-	    (vector-push-extend c sb sb-size)))) ; normal char, just add to string
-      (if chars
-	  (apply #'format nil sb (nreverse chars))
-	  sb)))
+		  (setq c (case c2 ; convert escaped char or escape sequence
+			    (#\a #\Bel)
+			    (#\b #\Backspace)
+			    (#\f #\Page)
+			    (#\n #\Newline)
+			    (#\r #\Return)
+			    (#\t #\Tab)
+			    (#\v #\Vt)
+			    (#\B (code-char (read-upto-n-char-radix-stream stream 2)))
+			    (#\o (code-char (read-upto-n-char-radix-stream stream 8)))
+			    (#\d (code-char (read-upto-n-char-radix-stream stream 10)))
+			    (#\x (code-char (read-upto-n-char-radix-stream stream 16)))
+			    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7) ; octal
+			     (unread-char c2)
+			     (code-char (read-upto-n-char-radix-stream stream 8 3)))
+			    (otherwise c2)))))))
+	(vector-push-extend c sb sb-size))) ; normal char, just add to string
+    sb))
 
 (set-dispatch-macro-character #\# #\" #'|#"-reader|)
+
