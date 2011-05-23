@@ -18,17 +18,6 @@
 ;;;	- any non-visible char (whitespace, newlines, etc)
 ;;;	- line comments starting with a ;
 ;;;	- block comments enclosed in #| |#
-;;;	- expressions, which are evaluated and their string represenation
-;;;	  is embdded in the output string (like CL-INTERPOL)
-;;;
-;;; For example:
-;;;
-;;; * (defun x () "the value of x")
-;;; * #"abc| " (x) #| call x |# " |def"#
-;;; "abc| the value of x |def"
-;;; * (defparameter y "the value of y")
-;;; * #"abc| "y" |def"#
-;;; "abc| the value of y |def"
 ;;;
 ;;; The read macro number paramter is used to set the initial buffer size
 ;;; and expansion parameter (default 16 characters).  For example:
@@ -45,7 +34,7 @@
 ;;;	- tested on SBCL 1.0.47, doesn't work with clisp yet
 ;;;
 ;;; Author: Burton Samograd <kruhft@gmail.com>
-;;; Date: May 22, 2011
+;;; Date: May 23, 2011
 ;;; License: 3 Clause BSD (See README)
 
 (defun |#"-reader| (stream subchar arg)
@@ -90,10 +79,7 @@
 		     (setq c (read-char stream))
 		     (return))
 		(otherwise
-		 ;; found expression in the middle of "" sequence
-		 ;; find textual representation and put it in the buffer
-		 (map nil (lambda (c) (vector-push-extend c sb sb-size))
-		      (format nil "~A" (eval (read stream))))))))
+		 (error "#\#-reader: non-whitespace or comment in middle of \"\" span")))))
 	(if (char= c #\\) ; if we see a \ escaped char
 	    (progn
 	      (let ((c2 (read-char stream)))
