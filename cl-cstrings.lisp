@@ -46,7 +46,7 @@
 ;;;
 ;;; Author: Burton Samograd <kruhft@gmail.com>
 ;;; Date: May 22, 2011
-;;; License: 3 Clause BSD
+;;; License: 3 Clause BSD (See README)
 
 (defun |#"-reader| (stream subchar arg)
   (declare (ignore subchar))
